@@ -179,9 +179,11 @@ public struct Archive: Sendable {
         } while RARProcessFile(data, RAR_SKIP, nil, nil) == ERAR_SUCCESS
     }
 
-    public func extract(_ entry: Entry) throws -> Data {
+    public func extract(_ entry: Entry, progress: Progress? = nil) throws -> Data {
+        progress?.totalUnitCount = Int64(entry.uncompressedSize)
         var fullData = Data(capacity: Int(entry.uncompressedSize))
-        try self.extract(entry) { (data, progress) in
+        try self.extract(entry) { (data, _) in
+            progress?.completedUnitCount += Int64(data.count)
             fullData.append(data)
         }
         if fullData.count == entry.uncompressedSize {
